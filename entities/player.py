@@ -13,6 +13,10 @@ class Player:
         self.vel_aceleron = BARCO_VEL_ACELERON
         self.frame = 0
         self.contador_anim = 0
+        self.vida = 100
+        self.en_turbulencia = False
+        self.mensaje_turbulencia = ""
+        self.tiempo_mensaje = 0
 
     def en_agua(self, mapa):
         """Verifica si el centro del barco está en agua"""
@@ -43,6 +47,22 @@ class Player:
             vel_actual = self.vel_turbulencia
             nuevo_x += random.choice([-1, 0, 1])
             nuevo_y += random.choice([-1, 0, 1])
+            
+            if not self.en_turbulencia:
+                self.en_turbulencia = True
+                self.mensaje_turbulencia = "¡TURBULENCIA! Navegación lenta - Perdiendo vida"
+                self.tiempo_mensaje = 180  # 3 segundos a 60 FPS
+            
+            # Perder vida en turbulencia (más lento)
+            self.vida -= 0.05
+            if self.vida < 0:
+                self.vida = 0
+        else:
+            self.en_turbulencia = False
+        
+        # Actualizar mensaje
+        if self.tiempo_mensaje > 0:
+            self.tiempo_mensaje -= 1
 
         # Movimiento del barco
         movio = False

@@ -44,14 +44,14 @@ def generate_map():
     return mapa, turbulencias
 
 def run_game():
-    """Función principal del juego"""
-    import sys
+    return run_game_window()
+
+def run_game_window():
     from core.settings import ANCHO, ALTO, FULLSCREEN
     from entities.player import Player, encontrar_posicion_inicial
     from utils.helpers import load_navegantes
     from ui.game_screen import GameScreen
 
-    pygame.init()
     if FULLSCREEN:
         screen = pygame.display.set_mode((ANCHO, ALTO), pygame.FULLSCREEN)
     else:
@@ -76,14 +76,16 @@ def run_game():
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                return "quit"
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    running = False
+                    return "menu"
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 accion = game_screen.handle_click(event.pos)
                 if accion == "volver":
-                    running = False
+                    return "menu"
+                elif accion == "salir":
+                    return "quit"
 
         # Actualizar jugador
         keys = pygame.key.get_pressed()
@@ -98,5 +100,4 @@ def run_game():
         pygame.display.flip()
         clock.tick(60)
 
-    pygame.quit()
-    sys.exit()
+    return "menu"
