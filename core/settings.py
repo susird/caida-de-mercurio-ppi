@@ -15,7 +15,7 @@ ANCHO = info.current_w
 ALTO = info.current_h
 pygame.quit()
 MAP_ANCHO = 8000
-MAP_ALTO = 8000
+MAP_ALTO = 20000  # Mapa mucho más largo
 
 # Colores
 AZUL1 = (30, 144, 255)   # azul claro

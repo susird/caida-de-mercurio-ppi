@@ -49,16 +49,21 @@ class MainMenu:
         info = pygame.display.Info()
         screen_w, screen_h = info.current_w, info.current_h
         
-        boton_ancho, boton_alto = 200, 60
+        boton_ancho, boton_alto = 300, 80
         boton_x = screen_w // 2 - boton_ancho // 2
         
-        # Botón jugar
-        boton_y_jugar = screen_h - 250
-        self.boton_jugar = Button(boton_x, boton_y_jugar, boton_ancho, boton_alto, "JUGAR", self.fuente_boton)
+        # Botones de dificultad
+        self.boton_novato = Button(boton_x, screen_h - 400, boton_ancho, boton_alto, "EXPLORADOR", self.fuente_boton)
+        self.boton_medio = Button(boton_x, screen_h - 310, boton_ancho, boton_alto, "AVENTURERO", self.fuente_boton)
+        self.boton_pro = Button(boton_x, screen_h - 220, boton_ancho, boton_alto, "SUPERVIVIENTE", self.fuente_boton)
         
-        # Botón salir
-        boton_y_salir = screen_h - 170
-        self.boton_salir = Button(boton_x, boton_y_salir, boton_ancho, boton_alto, "SALIR", self.fuente_boton)
+        # Botón X en esquina superior derecha
+        x_size = 50
+        x_x = screen_w - x_size - 20
+        x_y = 20
+        font_path = os.path.join(FONTS_DIR, "VT323-Regular.ttf")
+        fuente_x = pygame.font.Font(font_path, 36)
+        self.boton_x = Button(x_x, x_y, x_size, x_size, "X", fuente_x)
 
     def draw(self, surface):
         """Dibuja el menú principal"""
@@ -79,13 +84,19 @@ class MainMenu:
         surface.blit(texto_subtitulo, (screen_w//2 - texto_subtitulo.get_width()//2, 160))
 
         # Dibujar botones
-        self.boton_jugar.draw(surface)
-        self.boton_salir.draw(surface)
+        self.boton_novato.draw(surface)
+        self.boton_medio.draw(surface)
+        self.boton_pro.draw(surface)
+        self.boton_x.draw(surface)
 
     def handle_click(self, pos):
         """Maneja los clicks en el menú"""
-        if self.boton_jugar.is_clicked(pos):
-            return "jugar"
-        elif self.boton_salir.is_clicked(pos):
+        if self.boton_novato.is_clicked(pos):
+            return "novato"
+        elif self.boton_medio.is_clicked(pos):
+            return "medio"
+        elif self.boton_pro.is_clicked(pos):
+            return "pro"
+        elif self.boton_x.is_clicked(pos):
             return "salir"
         return None

@@ -37,22 +37,50 @@ class GameScreen:
         self.cam_x = max(0, min(MAP_ANCHO - ANCHO, self.cam_x))
         self.cam_y = max(0, min(MAP_ALTO - ALTO, self.cam_y))
 
-    def draw(self, surface, mapa, player, imagenes_navegante, navegante_rio1):
+    def draw(self, surface, tile_map, player, imagenes_navegante, navegante_rio1, peces=None, navegante_especial=None, navegante_pescando=None, obstaculos=None):
         """Dibuja la pantalla del juego"""
-        # Dibujar mapa
-        surface.blit(mapa, (-self.cam_x, -self.cam_y))
+        # Dibujar mapa de tiles
+        tile_map.render(surface, self.cam_x, self.cam_y)
         
-        # Dibujar jugador
+        # Dibujar peces
+        if peces:
+            for pez in peces:
+                pez.draw(surface, self.cam_x, self.cam_y)
+        
+        # Dibujar jugador (sprite según acción)
+        if player.sprite_especial and navegante_especial is not None:
+            # Usar navegante_caido cuando hay colisión con tronco
+            sprite_a_usar = navegante_especial
+        elif player.pescando and navegante_pescando is not None:
+            sprite_a_usar = navegante_pescando
+        else:
+            sprite_a_usar = imagenes_navegante[player.frame]
+            
         surface.blit(
-            imagenes_navegante[player.frame],
+            sprite_a_usar,
             (
-                player.x - self.cam_x - navegante_rio1.get_width() // 2,
-                player.y - self.cam_y - navegante_rio1.get_height() // 2,
+                player.x - self.cam_x - sprite_a_usar.get_width() // 2,
+                player.y - self.cam_y - sprite_a_usar.get_height() // 2,
             ),
         )
         
+        # Dibujar obstáculos encima del jugador
+        if obstaculos:
+            for obstaculo in obstaculos:
+                obstaculo.draw(surface, self.cam_x, self.cam_y, tile_map)
+        
         self.hud.draw_vida(surface, player.vida)
-        self.hud.draw_mensaje(surface, player.mensaje_turbulencia, player.tiempo_mensaje)
+        self.hud.draw_contador_peces(surface, player.peces_recolectados)
+        self.hud.draw_tiempo(surface, player.tiempo_inicio, getattr(player, 'dificultad', 'novato'))
+        self.hud.draw_mensaje(surface, player.mensaje_turbulencia, player.tiempo_mensaje, player.x, player.y, self.cam_x, self.cam_y)
+        
+        # Dibujar mensaje de pez
+        if player.tiempo_mensaje_pez > 0:
+            self.hud.draw_mensaje_pez(surface, player.mensaje_pez, player.x, player.y, self.cam_x, self.cam_y)
+        
+        # Dibujar mensaje de tronco
+        if player.tiempo_colision_tronco > 0:
+            self.hud.draw_mensaje_tronco(surface, player.mensaje_tronco, player.x, player.y, self.cam_x, self.cam_y)
         
         self.boton_volver.draw(surface)
         self.boton_x.draw(surface)

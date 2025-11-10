@@ -15,9 +15,11 @@ def render_con_borde(texto, fuente, color_texto, color_borde):
     return superficie
 
 def load_navegantes():
-    """Carga las imágenes del navegante y devuelve (lista_de_frames, primer_frame)."""
+    """Carga las imágenes del navegante y devuelve (lista_de_frames, primer_frame, sprite_especial, sprite_pescando)."""
     ruta1 = os.path.join(IMAGES_DIR, "navegante_rio1.png")
     ruta2 = os.path.join(IMAGES_DIR, "navegante_rio2.png")
+    ruta_especial = os.path.join(IMAGES_DIR, "navegante_caido.png")
+    ruta_pescando = os.path.join(IMAGES_DIR, "navegante_rio3.png")
 
     if not os.path.exists(ruta1) or not os.path.exists(ruta2):
         raise FileNotFoundError("No se encontraron las imágenes de navegantes en /assets/images/")
@@ -29,4 +31,17 @@ def load_navegantes():
     img1 = pygame.transform.scale(img1, (ANCHO_NAVEGANTE, ALTO_NAVEGANTE))
     img2 = pygame.transform.scale(img2, (ANCHO_NAVEGANTE, ALTO_NAVEGANTE))
 
-    return [img1, img2], img1
+    # Cargar sprite especial
+    img_especial = None
+    if os.path.exists(ruta_especial):
+        img_especial = pygame.image.load(ruta_especial).convert_alpha()
+        img_especial = pygame.transform.scale(img_especial, (ANCHO_NAVEGANTE, ALTO_NAVEGANTE))
+
+    # Cargar sprite pescando
+    img_pescando = None
+    if os.path.exists(ruta_pescando):
+        img_pescando = pygame.image.load(ruta_pescando).convert_alpha()
+        img_pescando = pygame.transform.scale(img_pescando, (ANCHO_NAVEGANTE, ALTO_NAVEGANTE))
+
+
+    return [img1, img2], img1, img_especial, img_pescando

@@ -35,18 +35,18 @@ class App:
             pygame.display.flip()
             self.clock.tick(60)
 
-    def show_game(self):
+    def show_game(self, dificultad="novato"):
         """Muestra el juego y retorna cuando termina"""
         from core.game import run_game_window
-        return run_game_window()
+        return run_game_window(dificultad)
 
     def run(self):
         """Ejecuta la aplicación"""
         while True:
             accion = self.show_menu()
             
-            if accion == "jugar":
-                resultado = self.show_game()
+            if accion in ["novato", "medio", "pro"]:
+                resultado = self.show_game(accion)
                 # Si el juego retorna "menu", continúa el loop
                 # Si retorna "quit", sale
                 if resultado == "quit":
