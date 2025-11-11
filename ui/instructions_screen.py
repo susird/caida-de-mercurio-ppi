@@ -52,7 +52,7 @@ class InstructionsScreen:
             "• Recolecta 20 peces antes de que se acabe el tiempo",
             "",
             "CONTROLES:",
-            "• Flechas (↑↓←→): Mover el barco",
+            "• Flechas (Arriba/Abajo/Izq/Der): Mover el barco",
             "• ESPACIO: Acelerar (turbo)",
             "• S: Pescar (cuando hay peces cerca)",
             "• ESC: Volver al menú / Guardar partida",
