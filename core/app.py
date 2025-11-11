@@ -1,58 +1,78 @@
-# core/app.py
 import pygame
 import sys
-from core.settings import ANCHO, ALTO, FULLSCREEN
+from config.settings import SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE
 
 class App:
     def __init__(self):
         pygame.init()
-        if FULLSCREEN:
-            self.screen = pygame.display.set_mode((ANCHO, ALTO), pygame.FULLSCREEN)
-        else:
-            self.screen = pygame.display.set_mode((ANCHO, ALTO))
+        flags = pygame.FULLSCREEN if FULLSCREEN_MODE else 0
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), flags)
         pygame.display.set_caption("Caída de Mercurio")
         self.clock = pygame.time.Clock()
 
     def show_menu(self):
-        """Muestra el menú principal y retorna la acción elegida"""
         from ui.main_menu import MainMenu
         
         main_menu = MainMenu()
         
         while True:
-            for evento in pygame.event.get():
-                if evento.type == pygame.QUIT:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     return "quit"
-                elif evento.type == pygame.KEYDOWN:
-                    if evento.key == pygame.K_ESCAPE:
-                        return "quit"
-                elif evento.type == pygame.MOUSEBUTTONDOWN:
-                    accion = main_menu.handle_click(evento.pos)
-                    if accion:
-                        return accion
-
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    action = main_menu.handle_click(event.pos)
+                    if action:
+                        return action
+            
             main_menu.draw(self.screen)
             pygame.display.flip()
             self.clock.tick(60)
 
-    def show_game(self, dificultad="novato"):
-        """Muestra el juego y retorna cuando termina"""
+    def show_game(self, difficulty="novato"):
+        from data.save_game import SaveGame
         from core.game import run_game_window
-        return run_game_window(dificultad)
+        
+        save_game = SaveGame()
+        saved_data = save_game.load_saved_game(difficulty)
+        
+        if saved_data and saved_data.get("has_save", False):
+            if self._show_continue_dialog() == "new_game":
+                save_game.delete_saved_game(difficulty)
+                saved_data = None
+        
+        return run_game_window(difficulty, saved_data)
+    
+    def _show_continue_dialog(self):
+        from ui.continue_dialog import ContinueDialog
+        from ui.main_menu import MainMenu
+        
+        dialog = ContinueDialog()
+        main_menu = MainMenu()
+        
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                    return "new_game"
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    choice = dialog.handle_click(event.pos)
+                    if choice:
+                        return choice
+            
+            main_menu.draw(self.screen)
+            dialog.draw(self.screen)
+            pygame.display.flip()
+            self.clock.tick(60)
 
     def run(self):
-        """Ejecuta la aplicación"""
-        while True:
-            accion = self.show_menu()
-            
-            if accion in ["novato", "medio", "pro"]:
-                resultado = self.show_game(accion)
-                # Si el juego retorna "menu", continúa el loop
-                # Si retorna "quit", sale
-                if resultado == "quit":
+        try:
+            while True:
+                action = self.show_menu()
+                
+                if action in ["novato", "medio", "pro"]:
+                    if self.show_game(action) == "quit":
+                        break
+                elif action in ["salir", "quit"]:
                     break
-            elif accion == "salir" or accion == "quit":
-                break
-        
-        pygame.quit()
-        sys.exit()
+        finally:
+            pygame.quit()
+            sys.exit()

@@ -1,15 +1,12 @@
-# utils/constants.py
+from config.game_config import *
 
-# Velocidades del barco
-BARCO_VEL = 2                 # normal
-BARCO_VEL_TURBULENCIA = 1     # dentro de turbulencias
-BARCO_VEL_ACELERON = 5        # cuando presiona espacio
+BARCO_VEL = BOAT_SPEED_NORMAL
+BARCO_VEL_TURBULENCIA = BOAT_SPEED_TURBULENCE
+BARCO_VEL_ACELERON = BOAT_SPEED_BOOST
 
-# Tamaños del navegante
-ANCHO_NAVEGANTE = 90
-ALTO_NAVEGANTE = 70
+ANCHO_NAVEGANTE = BOAT_WIDTH
+ALTO_NAVEGANTE = BOAT_HEIGHT
 
-# Colores de UI
-CREMA = (255, 243, 196)
-NEGRO = (0, 0, 0)
-NARANJA = (255, 180, 70)
+CREMA = UI_CREAM
+NEGRO = UI_BLACK
+NARANJA = UI_ORANGE

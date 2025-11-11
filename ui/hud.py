@@ -144,10 +144,9 @@ class HUD:
         color_progreso = (0, 255, 0) if peces_recolectados >= 20 else (255, 215, 0)
         pygame.draw.rect(surface, color_progreso, (20, 105, int(barra_ancho * progreso), barra_alto))
     
-    def draw_tiempo(self, surface, tiempo_inicio, dificultad="novato"):
+    def draw_tiempo(self, surface, tiempo_inicio, tiempo_limite):
         """Dibuja el temporizador"""
         tiempo_transcurrido = (pygame.time.get_ticks() - tiempo_inicio) / 1000
-        tiempo_limite = {"novato": 180, "medio": 120, "pro": 60}[dificultad]
         tiempo_restante = max(0, tiempo_limite - tiempo_transcurrido)
         
         minutos = int(tiempo_restante // 60)

@@ -1,7 +1,7 @@
-# ui/win_screen.py
 import os
 import pygame
 from core.settings import ANCHO, ALTO, FONTS_DIR, IMAGES_DIR
+from data.game_data import GameData
 
 class WinScreen:
     def __init__(self):
@@ -17,24 +17,27 @@ class WinScreen:
         
         # Cargar fuente
         font_path = os.path.join(FONTS_DIR, "VT323-Regular.ttf")
-        self.fuente_titulo = pygame.font.Font(font_path, 72)
-        self.fuente_texto = pygame.font.Font(font_path, 36)
+        self.font_title = pygame.font.Font(font_path, 48)
+        self.font_text = pygame.font.Font(font_path, 24)
+        self.font_score = pygame.font.Font(font_path, 20)
+        
+        self.game_data = GameData()
     
     def draw(self, surface):
         # Dibujar fondo
         surface.blit(self.fondo, (0, 0))
         
-        # Texto principal
-        titulo = self.fuente_titulo.render("GANASTE", True, (255, 255, 255))
+        # Título
+        titulo = self.font_title.render("¡GANASTE!", True, (0, 0, 0))
         titulo_rect = titulo.get_rect(center=(ANCHO // 2, ALTO // 2 - 50))
         surface.blit(titulo, titulo_rect)
         
         # Subtítulo
-        subtitulo = self.fuente_texto.render("Lograste pescar 20 peces a tiempo", True, (255, 255, 255))
+        subtitulo = self.font_text.render("Lograste pescar 20 peces a tiempo", True, (0, 0, 0))
         subtitulo_rect = subtitulo.get_rect(center=(ANCHO // 2, ALTO // 2 + 50))
         surface.blit(subtitulo, subtitulo_rect)
         
         # Instrucción
-        instruccion = self.fuente_texto.render("Presiona ESC para volver al menú", True, (200, 200, 200))
+        instruccion = self.font_text.render("Presiona ESC para volver al menú", True, (50, 50, 50))
         instruccion_rect = instruccion.get_rect(center=(ANCHO // 2, ALTO // 2 + 150))
         surface.blit(instruccion, instruccion_rect)

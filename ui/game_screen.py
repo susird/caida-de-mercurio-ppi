@@ -37,7 +37,7 @@ class GameScreen:
         self.cam_x = max(0, min(MAP_ANCHO - ANCHO, self.cam_x))
         self.cam_y = max(0, min(MAP_ALTO - ALTO, self.cam_y))
 
-    def draw(self, surface, tile_map, player, imagenes_navegante, navegante_rio1, peces=None, navegante_especial=None, navegante_pescando=None, obstaculos=None):
+    def draw(self, surface, tile_map, player, imagenes_navegante, navegante_rio1, peces=None, navegante_especial=None, navegante_pescando=None, obstaculos=None, tiempo_limite=180):
         """Dibuja la pantalla del juego"""
         # Dibujar mapa de tiles
         tile_map.render(surface, self.cam_x, self.cam_y)
@@ -71,7 +71,7 @@ class GameScreen:
         
         self.hud.draw_vida(surface, player.vida)
         self.hud.draw_contador_peces(surface, player.peces_recolectados)
-        self.hud.draw_tiempo(surface, player.tiempo_inicio, getattr(player, 'dificultad', 'novato'))
+        self.hud.draw_tiempo(surface, player.tiempo_inicio, tiempo_limite)
         self.hud.draw_mensaje(surface, player.mensaje_turbulencia, player.tiempo_mensaje, player.x, player.y, self.cam_x, self.cam_y)
         
         # Dibujar mensaje de pez

@@ -9,7 +9,9 @@ from utils.obstacle_loader import load_obstacle_tiles, Obstacle
 from core.settings import MAP_ANCHO, MAP_ALTO
 
 class TileMap:
-    def __init__(self):
+    def __init__(self, seed=None):
+        if seed:
+            random.seed(seed)
         self.tiles = generate_all_tiles()
         self.map_width = MAP_ANCHO // TILE_SIZE
         self.map_height = MAP_ALTO // TILE_SIZE

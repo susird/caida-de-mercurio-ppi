@@ -1,47 +1,61 @@
-# utils/helpers.py
-import os
 import pygame
-from core.settings import IMAGES_DIR
+from pathlib import Path
+from config.settings import IMAGES_DIR
 from utils.constants import ANCHO_NAVEGANTE, ALTO_NAVEGANTE
 
-def render_con_borde(texto, fuente, color_texto, color_borde):
-    """Función para renderizar texto con borde"""
-    texto_surface = fuente.render(texto, True, color_texto)
-    borde_surface = fuente.render(texto, True, color_borde)
-    superficie = pygame.Surface((texto_surface.get_width() + 4, texto_surface.get_height() + 4), pygame.SRCALPHA)
-    for dx, dy in [(-2,0),(2,0),(0,-2),(0,2), (-2,-2),(2,-2),(-2,2),(2,2)]:
-        superficie.blit(borde_surface, (dx+2, dy+2))
-    superficie.blit(texto_surface, (2, 2))
-    return superficie
+def render_text_with_border(text, font, text_color, border_color):
+    text_surface = font.render(text, True, text_color)
+    border_surface = font.render(text, True, border_color)
+    
+    width = text_surface.get_width() + 4
+    height = text_surface.get_height() + 4
+    surface = pygame.Surface((width, height), pygame.SRCALPHA)
+    
+    border_offsets = [(-2,0), (2,0), (0,-2), (0,2), (-2,-2), (2,-2), (-2,2), (2,2)]
+    for dx, dy in border_offsets:
+        surface.blit(border_surface, (dx+2, dy+2))
+    
+    surface.blit(text_surface, (2, 2))
+    return surface
 
 def load_navegantes():
-    """Carga las imágenes del navegante y devuelve (lista_de_frames, primer_frame, sprite_especial, sprite_pescando)."""
-    ruta1 = os.path.join(IMAGES_DIR, "navegante_rio1.png")
-    ruta2 = os.path.join(IMAGES_DIR, "navegante_rio2.png")
-    ruta_especial = os.path.join(IMAGES_DIR, "navegante_caido.png")
-    ruta_pescando = os.path.join(IMAGES_DIR, "navegante_rio3.png")
+    try:
+        sprites = _load_boat_sprites()
+        return sprites["frames"], sprites["main"], sprites["special"], sprites["fishing"]
+    except Exception as e:
+        raise RuntimeError(f"Error cargando sprites del navegante: {e}")
 
-    if not os.path.exists(ruta1) or not os.path.exists(ruta2):
-        raise FileNotFoundError("No se encontraron las imágenes de navegantes en /assets/images/")
+def _load_boat_sprites():
+    sprite_files = {
+        "main": "navegante_rio1.png",
+        "secondary": "navegante_rio2.png", 
+        "special": "navegante_caido.png",
+        "fishing": "navegante_rio3.png"
+    }
+    
+    sprites = {}
+    
+    for sprite_type, filename in sprite_files.items():
+        sprite_path = Path(IMAGES_DIR) / filename
+        
+        if sprite_type in ["main", "secondary"] and not sprite_path.exists():
+            raise FileNotFoundError(f"Sprite requerido no encontrado: {sprite_path}")
+        
+        if sprite_path.exists():
+            try:
+                image = pygame.image.load(str(sprite_path)).convert_alpha()
+                sprites[sprite_type] = pygame.transform.scale(image, (ANCHO_NAVEGANTE, ALTO_NAVEGANTE))
+            except pygame.error as e:
+                raise RuntimeError(f"Error cargando {filename}: {e}")
+        else:
+            sprites[sprite_type] = None
+    
+    return {
+        "frames": [sprites["main"], sprites["secondary"]],
+        "main": sprites["main"],
+        "special": sprites["special"],
+        "fishing": sprites["fishing"]
+    }
 
-    img1 = pygame.image.load(ruta1).convert_alpha()
-    img2 = pygame.image.load(ruta2).convert_alpha()
-
-    # Escalar las imágenes al tamaño deseado
-    img1 = pygame.transform.scale(img1, (ANCHO_NAVEGANTE, ALTO_NAVEGANTE))
-    img2 = pygame.transform.scale(img2, (ANCHO_NAVEGANTE, ALTO_NAVEGANTE))
-
-    # Cargar sprite especial
-    img_especial = None
-    if os.path.exists(ruta_especial):
-        img_especial = pygame.image.load(ruta_especial).convert_alpha()
-        img_especial = pygame.transform.scale(img_especial, (ANCHO_NAVEGANTE, ALTO_NAVEGANTE))
-
-    # Cargar sprite pescando
-    img_pescando = None
-    if os.path.exists(ruta_pescando):
-        img_pescando = pygame.image.load(ruta_pescando).convert_alpha()
-        img_pescando = pygame.transform.scale(img_pescando, (ANCHO_NAVEGANTE, ALTO_NAVEGANTE))
-
-
-    return [img1, img2], img1, img_especial, img_pescando
+# Mantener compatibilidad
+render_con_borde = render_text_with_border

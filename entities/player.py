@@ -1,220 +1,308 @@
-# entities/player.py
 import random
 import pygame
-from core.settings import MAP_ANCHO, MAP_ALTO, AZUL1, AZUL2, TURBULENCIA
+from core.settings import MAP_ANCHO, MAP_ALTO
 from utils.constants import BARCO_VEL, BARCO_VEL_TURBULENCIA, BARCO_VEL_ACELERON
 
 class Player:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.vel = BARCO_VEL
-        self.vel_turbulencia = BARCO_VEL_TURBULENCIA
-        self.vel_aceleron = BARCO_VEL_ACELERON
+        self.health = 100
+        self.fish_collected = 0
+        self.start_time = pygame.time.get_ticks()
+        
+        self._init_movement()
+        self._init_animation()
+        self._init_states()
+        self._init_messages()
+    
+    def _init_movement(self):
+        self.normal_speed = BARCO_VEL
+        self.turbulence_speed = BARCO_VEL_TURBULENCIA
+        self.boost_speed = BARCO_VEL_ACELERON
+    
+    def _init_animation(self):
         self.frame = 0
-        self.contador_anim = 0
-        self.vida = 100
-        self.en_turbulencia = False
-        self.mensaje_turbulencia = ""
-        self.tiempo_mensaje = 0
-        self.sprite_especial = False
-        self.pescando = False
-        self.tiempo_pescando = 0
-        self.mensaje_pez = ""
-        self.tiempo_mensaje_pez = 0
-        self.colision_tronco = False
-        self.tiempo_colision_tronco = 0
-        self.mensaje_tronco = ""
-        self.peces_buenos = 0
-        self.peces_recolectados = 0
-        self.tiempo_inicio = pygame.time.get_ticks()
+        self.animation_counter = 0
+    
+    def _init_states(self):
+        self.in_turbulence = False
+        self.is_fishing = False
+        self.has_collision = False
+        self.show_special_sprite = False
+    
+    def _init_messages(self):
+        self.turbulence_message = ""
+        self.turbulence_message_timer = 0
+        self.fish_message = ""
+        self.fish_message_timer = 0
+        self.collision_message = ""
+        self.collision_message_timer = 0
 
-    def en_agua(self, tile_map):
-        """Verifica si el centro del barco está en agua"""
-        if 0 <= self.x < MAP_ANCHO and 0 <= self.y < MAP_ALTO:
-            tile_type = tile_map.get_tile_at_pixel(self.x, self.y)
-            return tile_map.is_water_tile(tile_type)
-        return False
+    def is_in_water(self, tile_map):
+        if not (0 <= self.x < MAP_ANCHO and 0 <= self.y < MAP_ALTO):
+            return False
+        tile_type = tile_map.get_tile_at_pixel(self.x, self.y)
+        return tile_map.is_water_tile(tile_type)
 
-    def dentro_turbulencia(self, tile_map):
-        """Detecta si el barco está en una zona de turbulencia"""
+    def is_in_turbulence(self, tile_map):
         tile_type = tile_map.get_tile_at_pixel(self.x, self.y)
         return tile_map.is_turbulence_tile(tile_type)
 
-    def update(self, keys, tile_map):
-        """Actualiza la posición del jugador"""
-        vel_actual = self.vel
-        nuevo_x, nuevo_y = self.x, self.y
-        movio = False  # Inicializar movio
+    def _handle_fishing(self, keys, tile_map):
+        if keys[pygame.K_s] and not self.is_fishing and self.fish_message_timer == 0:
+            nearby_fish = self._find_nearby_fish(tile_map)
+            if nearby_fish:
+                self._catch_fish(nearby_fish, tile_map)
 
-        # Detectar si presiona S para pescar
-        if keys[pygame.K_s] and not self.pescando:
-            # Buscar peces cercanos
-            pez_cercano = self.buscar_pez_cercano(tile_map)
-            if pez_cercano:
-                # Pescar el pez
-                if hasattr(tile_map, 'peces_activos'):
-                    tile_map.peces_activos.remove(pez_cercano)
-                self.pescando = True
-                # Aplicar efecto según tipo de pez
-                damage = pez_cercano.mercury_damage
-                fish_name = pez_cercano.fish_name
-                
-                if damage > 0:
-                    # Pez tóxico (lento)
-                    self.vida = max(0, self.vida - damage)
-                    self.peces_recolectados += 1  # Los malos suman 1
-                    self.mensaje_pez = f"{fish_name} -{damage} vida"
-                else:
-                    # Pez bueno (rápido)
-                    self.vida = min(100, self.vida + abs(damage))
-                    self.peces_recolectados += 2  # Los buenos suman 2
-                    self.mensaje_pez = f"{fish_name} +{abs(damage)} vida"
-                
-                self.tiempo_mensaje_pez = 180  # 3 segundos
-        
-        # Actualizar mensaje de pez
-        if self.tiempo_mensaje_pez > 0:
-            self.tiempo_mensaje_pez -= 1
-        
-        # Verificar colisión con obstáculos
-        if hasattr(tile_map, 'obstaculos_activos'):
-            for obstaculo in tile_map.obstaculos_activos:
-                if obstaculo.collides_with_player(self.x, self.y) and not self.colision_tronco:
-                    # Colisión con obstáculo - verificar si está en turbulencia
-                    if self.dentro_turbulencia(tile_map):
-                        self.vida = max(0, self.vida - 2)
-                        self.mensaje_tronco = "¡Agua tóxica! Pierdes 2 puntos de vida"
-                    else:
-                        self.vida = max(0, self.vida - 1)
-                        self.mensaje_tronco = "¡Plaf! Pierdes 1 punto de vida"
-                    self.tiempo_colision_tronco = 180  # 3 segundos
-                    self.colision_tronco = True
-                    self.sprite_especial = True  # Activar navegante_caido
-                    break
-        
-        # Actualizar mensaje de tronco
-        if self.tiempo_colision_tronco > 0:
-            self.tiempo_colision_tronco -= 1
-            if self.tiempo_colision_tronco == 0:
-                self.colision_tronco = False
-                self.sprite_especial = False  # Volver al sprite normal
-
-        # Acelerón con ESPACIO
-        if keys[pygame.K_SPACE]:
-            vel_actual = self.vel_aceleron
-
-        # Efecto de turbulencia
-        if self.dentro_turbulencia(tile_map):
-            vel_actual = self.vel_turbulencia
-            nuevo_x += random.choice([-1, 0, 1])
-            nuevo_y += random.choice([-1, 0, 1])
-            
-            if not self.en_turbulencia:
-                self.en_turbulencia = True
-                self.mensaje_turbulencia = "Está pasando por un cúmulo de agua contaminada por mercurio y estás perdiendo vida"
-            
-            # Mantener mensaje mientras esté en turbulencia
-            self.tiempo_mensaje = 60  # Renovar constantemente
-            
-            # Perder vida en turbulencia (más lento)
-            self.vida -= 0.05
-            if self.vida < 0:
-                self.vida = 0
-        else:
-            if self.en_turbulencia:
-                # Acaba de salir de turbulencia
-                self.en_turbulencia = False
-                self.tiempo_mensaje = 0  # Quitar mensaje inmediatamente
-        
-        # Actualizar mensaje
-        if self.tiempo_mensaje > 0:
-            self.tiempo_mensaje -= 1
-
-        # Movimiento del barco
-        if keys[pygame.K_LEFT]:
-            nuevo_x -= vel_actual
-            movio = True
-        if keys[pygame.K_RIGHT]:
-            nuevo_x += vel_actual
-            movio = True
-        if keys[pygame.K_UP]:
-            nuevo_y -= vel_actual
-            movio = True
-        if keys[pygame.K_DOWN]:
-            nuevo_y += vel_actual
-            movio = True
-        
-        # Detectar movimiento para salir del estado de pesca
-        if self.pescando and movio:
-            self.pescando = False
-        
-        # Reset colision_tronco si se mueve y ya no está colisionando
-        if self.colision_tronco:
-            # Verificar si ya no está colisionando con ningún obstáculo
-            colisionando = False
-            if hasattr(tile_map, 'obstaculos_activos'):
-                for obstaculo in tile_map.obstaculos_activos:
-                    if obstaculo.collides_with_player(self.x, self.y):
-                        colisionando = True
-                        break
-            if not colisionando:
-                self.colision_tronco = False
-                self.sprite_especial = False
-                self.tiempo_colision_tronco = 0
-
-        # Verificar si la nueva posición es válida
-        temp_x, temp_y = self.x, self.y
-        self.x, self.y = nuevo_x, nuevo_y
-        
-        # Verificar colisión con obstáculos dinámicos
-        collision_with_obstacle = False
-        if hasattr(tile_map, 'obstaculos_activos'):
-            for obstaculo in tile_map.obstaculos_activos:
-                if obstaculo.collides_with_player(self.x, self.y):
-                    collision_with_obstacle = True
-                    break
-        
-        # Verificar colisión con obstáculos estáticos
-        if not collision_with_obstacle and hasattr(tile_map, 'obstacles'):
-            for obstacle in tile_map.obstacles:
-                if obstacle.collides_with_player(self.x, self.y):
-                    collision_with_obstacle = True
-                    break
-        
-        if self.en_agua(tile_map) and not collision_with_obstacle:
-            pass  # Mantener nueva posición
-        else:
-            self.x, self.y = temp_x, temp_y  # Revertir
-
-        # Animación
-        if movio:
-            self.contador_anim += 1
-            if self.contador_anim % 10 == 0:
-                self.frame = (self.frame + 1) % 2
-    
-    def buscar_pez_cercano(self, tile_map):
-        """Busca un pez cerca del jugador"""
+    def _find_nearby_fish(self, tile_map):
         if not hasattr(tile_map, 'peces_activos'):
             return None
             
-        distancia_pesca = 50  # Distancia máxima para pescar
+        fishing_distance = 50
         
-        for pez in tile_map.peces_activos:
-            dx = pez.x - self.x
-            dy = pez.y - self.y
-            distancia = (dx * dx + dy * dy) ** 0.5
+        for fish in tile_map.peces_activos:
+            dx = fish.x - self.x
+            dy = fish.y - self.y
+            distance = (dx * dx + dy * dy) ** 0.5
             
-            if distancia <= distancia_pesca:
-                return pez
+            if distance <= fishing_distance:
+                return fish
         
         return None
 
+    def _catch_fish(self, fish, tile_map):
+        if hasattr(tile_map, 'peces_activos'):
+            tile_map.peces_activos.remove(fish)
+        
+        self.is_fishing = True
+        damage = fish.mercury_damage
+        fish_name = fish.fish_name
+        
+        if damage > 0:
+            self.health = max(0, self.health - damage)
+            self.fish_collected += 1
+            self.fish_message = f"{fish_name} - Pierdes {damage} puntos"
+        else:
+            self.health = min(100, self.health + abs(damage))
+            self.fish_collected += 2
+            self.fish_message = f"{fish_name} - Ganas {abs(damage)} puntos"
+        
+        self.fish_message_timer = 10
+
+    def _handle_obstacle_collision(self, tile_map):
+        if not hasattr(tile_map, 'obstaculos_activos'):
+            return
+            
+        for obstacle in tile_map.obstaculos_activos:
+            if obstacle.collides_with_player(self.x, self.y) and not self.has_collision:
+                damage = 2 if self.is_in_turbulence(tile_map) else 1
+                message = "¡Agua tóxica! Pierdes 2 puntos de vida" if damage == 2 else "¡Plaf! Pierdes 1 punto de vida"
+                
+                self.health = max(0, self.health - damage)
+                self.collision_message = message
+                self.collision_message_timer = 180
+                self.has_collision = True
+                self.show_special_sprite = True
+                break
+
+    def _handle_turbulence_effects(self, tile_map, new_x, new_y, current_speed):
+        if self.is_in_turbulence(tile_map):
+            current_speed = self.turbulence_speed
+            new_x += random.choice([-1, 0, 1])
+            new_y += random.choice([-1, 0, 1])
+            
+            if not self.in_turbulence:
+                self.in_turbulence = True
+                self.turbulence_message = "Está pasando por un cúmulo de agua contaminada por mercurio y estás perdiendo vida"
+            
+            self.turbulence_message_timer = 60
+            self.health -= 0.05
+            if self.health < 0:
+                self.health = 0
+        else:
+            if self.in_turbulence:
+                self.in_turbulence = False
+                self.turbulence_message_timer = 0
+        
+        return new_x, new_y, current_speed
+
+    def _handle_movement(self, keys, current_speed, new_x, new_y):
+        has_moved = False
+        
+        if keys[pygame.K_LEFT]:
+            new_x -= current_speed
+            has_moved = True
+        if keys[pygame.K_RIGHT]:
+            new_x += current_speed
+            has_moved = True
+        if keys[pygame.K_UP]:
+            new_y -= current_speed
+            has_moved = True
+        if keys[pygame.K_DOWN]:
+            new_y += current_speed
+            has_moved = True
+        
+        return new_x, new_y, has_moved
+
+    def _reset_collision_state(self, tile_map):
+        if not self.has_collision:
+            return
+            
+        is_colliding = False
+        if hasattr(tile_map, 'obstaculos_activos'):
+            for obstacle in tile_map.obstaculos_activos:
+                if obstacle.collides_with_player(self.x, self.y):
+                    is_colliding = True
+                    break
+        
+        if not is_colliding:
+            self.has_collision = False
+            self.show_special_sprite = False
+            self.collision_message_timer = 0
+
+    def _validate_and_apply_position(self, new_x, new_y, tile_map):
+        temp_x, temp_y = self.x, self.y
+        self.x, self.y = new_x, new_y
+        
+        collision_with_obstacle = self._check_obstacle_collision(tile_map)
+        
+        if self.is_in_water(tile_map) and not collision_with_obstacle:
+            pass
+        else:
+            self.x, self.y = temp_x, temp_y
+
+    def _check_obstacle_collision(self, tile_map):
+        if hasattr(tile_map, 'obstaculos_activos'):
+            for obstacle in tile_map.obstaculos_activos:
+                if obstacle.collides_with_player(self.x, self.y):
+                    return True
+        
+        if hasattr(tile_map, 'obstacles'):
+            for obstacle in tile_map.obstacles:
+                if obstacle.collides_with_player(self.x, self.y):
+                    return True
+        
+        return False
+
+    def _update_messages(self):
+        if self.fish_message_timer > 0:
+            self.fish_message_timer -= 1
+        
+        if self.collision_message_timer > 0:
+            self.collision_message_timer -= 1
+            if self.collision_message_timer == 0:
+                self.has_collision = False
+                self.show_special_sprite = False
+        
+        if self.turbulence_message_timer > 0:
+            self.turbulence_message_timer -= 1
+
+    def _update_animation(self, has_moved):
+        if has_moved:
+            self.animation_counter += 1
+            if self.animation_counter % 10 == 0:
+                self.frame = (self.frame + 1) % 2
+
+    def update(self, keys, tile_map):
+        current_speed = self.normal_speed
+        new_x, new_y = self.x, self.y
+        
+        self._handle_fishing(keys, tile_map)
+        self._update_messages()
+        self._handle_obstacle_collision(tile_map)
+        
+        if keys[pygame.K_SPACE]:
+            current_speed = self.boost_speed
+        
+        new_x, new_y, current_speed = self._handle_turbulence_effects(tile_map, new_x, new_y, current_speed)
+        new_x, new_y, has_moved = self._handle_movement(keys, current_speed, new_x, new_y)
+        
+        if self.is_fishing and has_moved:
+            self.is_fishing = False
+        
+        self._reset_collision_state(tile_map)
+        self._validate_and_apply_position(new_x, new_y, tile_map)
+        self._update_animation(has_moved)
+
+    # Propiedades para compatibilidad con código existente
+    @property
+    def vida(self):
+        return self.health
+    
+    @vida.setter
+    def vida(self, value):
+        self.health = value
+    
+    @property
+    def peces_recolectados(self):
+        return self.fish_collected
+    
+    @peces_recolectados.setter
+    def peces_recolectados(self, value):
+        self.fish_collected = value
+    
+    @property
+    def tiempo_inicio(self):
+        return self.start_time
+    
+    @property
+    def pescando(self):
+        return self.is_fishing
+    
+    @property
+    def sprite_especial(self):
+        return self.show_special_sprite
+    
+    @property
+    def mensaje_pez(self):
+        return self.fish_message
+    
+    @property
+    def tiempo_mensaje_pez(self):
+        return self.fish_message_timer
+    
+    @property
+    def mensaje_tronco(self):
+        return self.collision_message
+    
+    @property
+    def mensaje_turbulencia(self):
+        return self.turbulence_message
+    
+    @property
+    def tiempo_mensaje(self):
+        return self.turbulence_message_timer
+    
+    @property
+    def colision_tronco(self):
+        return self.has_collision
+    
+    @property
+    def tiempo_colision_tronco(self):
+        return self.collision_message_timer
+    
+    @property
+    def en_turbulencia(self):
+        return self.in_turbulence
+    
+    @property
+    def contador_anim(self):
+        return self.animation_counter
+    
+    def en_agua(self, tile_map):
+        return self.is_in_water(tile_map)
+    
+    def dentro_turbulencia(self, tile_map):
+        return self.is_in_turbulence(tile_map)
+    
+    def buscar_pez_cercano(self, tile_map):
+        return self._find_nearby_fish(tile_map)
+
 def encontrar_posicion_inicial(tile_map):
-    """Busca un punto válido en el agua"""
     while True:
         x = random.randint(200, MAP_ANCHO-200)
         y = random.randint(MAP_ALTO-800, MAP_ALTO-200)
         player = Player(x, y)
-        if player.en_agua(tile_map):
+        if player.is_in_water(tile_map):
             return x, y

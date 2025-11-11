@@ -16,7 +16,7 @@ class GameOverScreen:
         self.fuente_titulo = pygame.font.Font(font_path, 72)
         self.fuente_subtitulo = pygame.font.Font(font_path, 36)
     
-    def draw(self, surface):
+    def draw(self, surface, reason="death"):
         """Dibuja la pantalla de Game Over"""
         # Dibujar fondo
         surface.blit(self.fondo, (0, 0))
@@ -27,8 +27,13 @@ class GameOverScreen:
         titulo_y = ALTO // 2 - 100
         surface.blit(titulo_texto, (titulo_x, titulo_y))
         
-        # Texto "Has muerto por consumir tanto mercurio"
-        subtitulo_texto = render_con_borde("Has muerto por consumir tanto mercurio", self.fuente_subtitulo, (255, 255, 255), (0, 0, 0))
+        # Mensaje según la razón del game over
+        if reason == "timeout":
+            mensaje = "No lograste recolectar todos los peces a tiempo"
+        else:
+            mensaje = "Has muerto por consumir tanto mercurio"
+        
+        subtitulo_texto = render_con_borde(mensaje, self.fuente_subtitulo, (255, 255, 255), (0, 0, 0))
         subtitulo_x = ANCHO // 2 - subtitulo_texto.get_width() // 2
         subtitulo_y = titulo_y + 120
         surface.blit(subtitulo_texto, (subtitulo_x, subtitulo_y))
