@@ -24,13 +24,19 @@ Aventura en aguas envenenadas - Un juego de navegación por ríos contaminados d
 - **Mapas Únicos**: Cada dificultad tiene su propio mapa generado proceduralmente
 - **Restauración de Estado**: Posición del jugador, vida, peces recolectados y peces pescados
 
+### Sistema de Instrucciones
+- **Pantalla Automática**: Las instrucciones aparecen automáticamente para nuevos jugadores
+- **Jugadores Experimentados**: Si tienes una partida guardada con peces pescados, vas directo al juego
+- **Interfaz Mejorada**: Fondo oscurecido para mejor legibilidad del texto
+- **Botones Horizontales**: Los tres modos de dificultad se muestran en línea horizontal
+
 ## 🎯 Controles
 
 - **Flechas (↑↓←→)**: Mover el barco
 - **Espacio**: Acelerar (turbo)
 - **S**: Pescar (cuando hay peces cerca, radio de 50 píxeles)
 - **ESC**: Volver al menú / Guardar partida
-- **Click en VOLVER**: Regresar al menú principal
+- **Click en EMPEZAR A JUGAR**: Iniciar el juego desde las instrucciones
 - **Click en X**: Salir del juego
 
 ## 🌊 Mundos y Entornos
@@ -68,6 +74,7 @@ caida-de-mercurio-main/
 │   └── obstaculo.py       # Obstáculos (troncos y barriles)
 ├── ui/                     # Interfaz de usuario
 │   ├── main_menu.py       # Menú principal con selección de dificultad
+│   ├── instructions_screen.py # Pantalla de instrucciones automática
 │   ├── game_screen.py     # Pantalla de juego con cámara
 │   ├── game_over_screen.py # Pantalla de derrota
 │   ├── win_screen.py      # Pantalla de victoria
@@ -186,6 +193,18 @@ python3 main.py
 - **Límites de mapa**: Cámara limitada a los bordes del mundo
 - **HUD informativo**: Vida, peces recolectados, tiempo restante
 - **Mensajes contextuales**: Información sobre pesca y colisiones
+
+## 🎯 Flujo de Juego
+
+### Para Nuevos Jugadores
+1. **Menú Principal** → Seleccionar dificultad (botones horizontales)
+2. **Pantalla de Instrucciones** → Leer cómo jugar automáticamente
+3. **Empezar a Jugar** → Iniciar el juego con la dificultad elegida
+
+### Para Jugadores con Progreso
+1. **Menú Principal** → Seleccionar dificultad
+2. **Diálogo de Continuar** → Continuar partida guardada o empezar nueva
+3. **Si elige nueva partida** → Ver instrucciones → Jugar
 
 ## 🎯 Objetivos y Estrategias
 

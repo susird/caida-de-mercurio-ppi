@@ -63,13 +63,43 @@ class App:
             pygame.display.flip()
             self.clock.tick(60)
 
+    def show_instructions(self, difficulty):
+        from ui.instructions_screen import InstructionsScreen
+        
+        instructions_screen = InstructionsScreen()
+        
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                    return "menu"
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    action = instructions_screen.handle_click(event.pos)
+                    if action == "start_game":
+                        return self.show_game(difficulty)
+            
+            instructions_screen.draw(self.screen)
+            pygame.display.flip()
+            self.clock.tick(60)
+    
     def run(self):
         try:
             while True:
                 action = self.show_menu()
                 
                 if action in ["novato", "medio", "pro"]:
-                    if self.show_game(action) == "quit":
+                    # Verificar si hay partida guardada válida (con al menos 1 pez pescado)
+                    from data.save_game import SaveGame
+                    save_game = SaveGame()
+                    saved_data = save_game.load_saved_game(action)
+                    
+                    if saved_data and saved_data.get("has_save", False) and saved_data.get("fish_collected", 0) > 0:
+                        # Hay partida guardada válida, ir directo al juego
+                        result = self.show_game(action)
+                    else:
+                        # No hay partida guardada válida, mostrar instrucciones primero
+                        result = self.show_instructions(action)
+                    
+                    if result == "quit":
                         break
                 elif action in ["salir", "quit"]:
                     break

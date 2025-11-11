@@ -49,13 +49,16 @@ class MainMenu:
         info = pygame.display.Info()
         screen_w, screen_h = info.current_w, info.current_h
         
-        boton_ancho, boton_alto = 300, 80
-        boton_x = screen_w // 2 - boton_ancho // 2
+        # Botones de dificultad en horizontal
+        boton_ancho, boton_alto = 220, 80
+        spacing = 30
+        total_width = (boton_ancho * 3) + (spacing * 2)
+        start_x = (screen_w - total_width) // 2
+        boton_y = screen_h - 250
         
-        # Botones de dificultad
-        self.boton_novato = Button(boton_x, screen_h - 400, boton_ancho, boton_alto, "EXPLORADOR", self.fuente_boton)
-        self.boton_medio = Button(boton_x, screen_h - 310, boton_ancho, boton_alto, "AVENTURERO", self.fuente_boton)
-        self.boton_pro = Button(boton_x, screen_h - 220, boton_ancho, boton_alto, "SUPERVIVIENTE", self.fuente_boton)
+        self.boton_novato = Button(start_x, boton_y, boton_ancho, boton_alto, "EXPLORADOR", self.fuente_boton)
+        self.boton_medio = Button(start_x + boton_ancho + spacing, boton_y, boton_ancho, boton_alto, "AVENTURERO", self.fuente_boton)
+        self.boton_pro = Button(start_x + (boton_ancho + spacing) * 2, boton_y, boton_ancho, boton_alto, "SUPERVIVIENTE", self.fuente_boton)
         
         # Botón X en esquina superior derecha
         x_size = 50
