@@ -5,9 +5,9 @@ Aventura en aguas envenenadas - Un juego de navegación por ríos contaminados d
 ## 🎮 Características del Juego
 
 ### Modos de Dificultad
-- **EXPLORADOR**: 3 minutos para completar la misión (semilla: 12345)
-- **AVENTURERO**: 2 minutos para completar la misión (semilla: 67890)
-- **SUPERVIVIENTE**: 1 minuto para completar la misión (semilla: 54321)
+- **EXPLORADOR**: 3 minutos para completar la misión
+- **AVENTURERO**: 2 minutos para completar la misión
+- **SUPERVIVIENTE**: 1 minuto para completar la misión
 
 ### Mecánicas de Juego
 - **Objetivo**: Recolectar 20 peces antes de que se acabe el tiempo
