@@ -118,7 +118,9 @@ def load_custom_tiles():
     import os
     tiles = {}
     
-    base_path = "/Users/usr011582/Documents/caida de mercurio/caida-de-mercurio-main/assets/images/"
+    # Usar ruta relativa desde el directorio del proyecto
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_path = os.path.join(script_dir, "assets", "images") + os.sep
     
     # Lista ordenada: 1 (base), 2,3,13,14,15 (con sombra), 37 (prueba)
     water_tiles = ['Map_tile_01.png', 'Map_tile_02.png', 'Map_tile_03.png', 

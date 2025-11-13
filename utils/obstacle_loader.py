@@ -6,7 +6,8 @@ import random
 def load_obstacle_tiles():
     """Carga tiles de obstáculos para el agua"""
     obstacle_tiles = []
-    base_path = "/Users/usr011582/Documents/caida de mercurio/caida-de-mercurio-main/assets/images/"
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_path = os.path.join(script_dir, "assets", "images") + os.sep
     
     # Cargar barril y tronco
     obstacles = ['barril.png', 'tronco.png']

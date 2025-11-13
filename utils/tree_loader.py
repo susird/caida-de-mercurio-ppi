@@ -6,7 +6,8 @@ import random
 def load_tree_tiles():
     """Carga todos los tiles de árboles disponibles"""
     tree_tiles = []
-    base_path = "/Users/usr011582/Documents/caida de mercurio/caida-de-mercurio-main/assets/images/"
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_path = os.path.join(script_dir, "assets", "images") + os.sep
     
     # Cargar todos los tiles de árboles (tree1.png a tree9.png)
     for i in range(1, 10):
@@ -28,7 +29,8 @@ def load_tree_tiles():
 def load_bush_tiles():
     """Carga todos los tiles de arbustos disponibles"""
     bush_tiles = []
-    base_path = "/Users/usr011582/Documents/caida de mercurio/caida-de-mercurio-main/assets/images/"
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_path = os.path.join(script_dir, "assets", "images") + os.sep
     
     # Cargar todos los tiles de arbustos (arbusto.png a arbusto6.png)
     bush_files = ['arbusto.png', 'arbusto2.png', 'arbusto3.png', 'arbusto4.png', 'arbusto5.png', 'arbusto6.png']
@@ -52,7 +54,8 @@ def load_bush_tiles():
 def load_flower_tiles():
     """Carga tiles de flores disponibles"""
     flower_tiles = []
-    base_path = "/Users/usr011582/Documents/caida de mercurio/caida-de-mercurio-main/assets/images/"
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_path = os.path.join(script_dir, "assets", "images") + os.sep
     
     flower_path = base_path + "flor10.png"
     if os.path.exists(flower_path):
@@ -72,7 +75,8 @@ def load_flower_tiles():
 def load_rock_tiles():
     """Carga todos los tiles de rocas disponibles"""
     rock_tiles = []
-    base_path = "/Users/usr011582/Documents/caida de mercurio/caida-de-mercurio-main/assets/images/"
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_path = os.path.join(script_dir, "assets", "images") + os.sep
     
     # Cargar todos los tiles de rocas (roca1.png a roca6.png)
     for i in range(1, 7):
