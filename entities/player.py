@@ -1,6 +1,7 @@
 import random
 import pygame
 from core.settings import MAP_ANCHO, MAP_ALTO
+from config.settings import SOUNDS_DIR
 from utils.constants import BARCO_VEL, BARCO_VEL_TURBULENCIA, BARCO_VEL_ACELERON
 
 class Player:
@@ -15,6 +16,35 @@ class Player:
         self._init_animation()
         self._init_states()
         self._init_messages()
+        # Cargar sonido de colisión si está disponible
+        self.collision_sound = None
+        try:
+            if pygame.mixer.get_init():
+                sound_file = SOUNDS_DIR / "explosion.mp3"
+                if sound_file.exists():
+                    self.collision_sound = pygame.mixer.Sound(str(sound_file))
+                    try:
+                        self.collision_sound.set_volume(0.7)
+                    except Exception:
+                        pass
+        except Exception:
+            # No es crítico si falla la carga del sonido
+            self.collision_sound = None
+
+        # Cargar sonido de latido (salud baja) si está disponible
+        self.heartbeat_sound = None
+        self.heartbeat_playing = False
+        try:
+            if pygame.mixer.get_init():
+                hb_file = SOUNDS_DIR / "HeartBeat.mp3"
+                if hb_file.exists():
+                    self.heartbeat_sound = pygame.mixer.Sound(str(hb_file))
+                    try:
+                        self.heartbeat_sound.set_volume(0.6)
+                    except Exception:
+                        pass
+        except Exception:
+            self.heartbeat_sound = None
     
     def _init_movement(self):
         self.normal_speed = BARCO_VEL
@@ -104,6 +134,12 @@ class Player:
                 self.collision_message_timer = 180
                 self.has_collision = True
                 self.show_special_sprite = True
+                # Reproducir sonido de colisión si está cargado
+                try:
+                    if self.collision_sound:
+                        self.collision_sound.play()
+                except Exception:
+                    pass
                 break
 
     def _handle_turbulence_effects(self, tile_map, new_x, new_y, current_speed):
@@ -203,6 +239,25 @@ class Player:
             self.animation_counter += 1
             if self.animation_counter % 10 == 0:
                 self.frame = (self.frame + 1) % 2
+    
+    def _handle_low_health_sound(self):
+        """
+        Reproduce un sonido de latido en loop cuando la vida llega a 20 o menos y
+        lo detiene cuando sube por encima de 20.
+        """
+        try:
+            if not self.heartbeat_sound:
+                return
+
+            if self.health <= 20 and not self.heartbeat_playing:
+                self.heartbeat_sound.play(-1)  # loop infinito hasta que se detenga
+                self.heartbeat_playing = True
+            elif self.health > 20 and self.heartbeat_playing:
+                self.heartbeat_sound.stop()
+                self.heartbeat_playing = False
+        except Exception:
+            # No detener la ejecución del juego por fallos en audio
+            pass
 
     def update(self, keys, tile_map):
         current_speed = self.normal_speed
@@ -224,6 +279,8 @@ class Player:
         self._reset_collision_state(tile_map)
         self._validate_and_apply_position(new_x, new_y, tile_map)
         self._update_animation(has_moved)
+        # Gestionar el sonido de latido si la salud es baja
+        self._handle_low_health_sound()
 
     # Propiedades para compatibilidad con código existente
     @property

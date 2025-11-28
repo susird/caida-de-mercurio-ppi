@@ -1,14 +1,32 @@
 import pygame
 import sys
-from config.settings import SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE
+import os
+from config.settings import SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE, SOUNDS_DIR
 
 class App:
     def __init__(self):
         pygame.init()
+        # Inicializar el mezclador de sonido (módulo de audio)
+        try:
+            pygame.mixer.init()
+        except Exception as e:
+            # Si falla la inicialización del mezclador, no bloqueamos el juego
+            print(f"Advertencia: no se pudo inicializar el mezclador de audio: {e}")
         flags = pygame.FULLSCREEN if FULLSCREEN_MODE else 0
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), flags)
         pygame.display.set_caption("Caída de Mercurio")
         self.clock = pygame.time.Clock()
+        # Reproducir música de fondo en loop contínuo (si existe el archivo)
+        try:
+            music_file = SOUNDS_DIR / "BackgroudMusic.mp3"
+            if music_file.exists():
+                pygame.mixer.music.load(str(music_file))
+                pygame.mixer.music.set_volume(0.5)  # ajustar volumen por defecto
+                pygame.mixer.music.play(-1)  # -1 para repetir infinitamente
+            else:
+                print(f"Aviso: archivo de música no encontrado: {music_file}")
+        except Exception as e:
+            print(f"Advertencia: no se pudo reproducir la música de fondo: {e}")
 
     def show_menu(self):
         from ui.main_menu import MainMenu
@@ -104,5 +122,12 @@ class App:
                 elif action in ["salir", "quit"]:
                     break
         finally:
+            # Parar la música y desinicializar el mezclador si está activo
+            try:
+                if pygame.mixer.get_init():
+                    pygame.mixer.music.stop()
+                    pygame.mixer.quit()
+            except Exception:
+                pass
             pygame.quit()
             sys.exit()
