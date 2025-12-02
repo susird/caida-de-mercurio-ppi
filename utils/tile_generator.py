@@ -196,7 +196,10 @@ def generate_all_tiles():
 def save_tiles_as_images():
     """Guarda los tiles como imágenes PNG"""
     tiles = generate_all_tiles()
-    tiles_dir = "/Users/usr011582/Documents/caida de mercurio/caida-de-mercurio-main/assets/tiles"
+    
+    # Usar ruta relativa desde el directorio del proyecto
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    tiles_dir = os.path.join(script_dir, "assets", "tiles")
     
     if not os.path.exists(tiles_dir):
         os.makedirs(tiles_dir)
