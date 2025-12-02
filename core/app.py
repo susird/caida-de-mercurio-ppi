@@ -30,6 +30,10 @@ class App:
 
     def show_menu(self):
         from ui.main_menu import MainMenu
+        from utils.sound_manager import sound_manager
+        
+        # Reproducir música del menú
+        sound_manager.play_menu_music()
         
         main_menu = MainMenu()
         
@@ -48,15 +52,19 @@ class App:
 
     def show_game(self, difficulty="novato"):
         from data.save_game import SaveGame
-        from core.game import run_game_window
+        from core.game_manager import run_game_window
         
         save_game = SaveGame()
         saved_data = save_game.load_saved_game(difficulty)
         
         if saved_data and saved_data.get("has_save", False):
-            if self._show_continue_dialog() == "new_game":
+            choice = self._show_continue_dialog()
+            if choice == "new_game":
                 save_game.delete_saved_game(difficulty)
-                saved_data = None
+                return self.show_instructions(difficulty)
+        # Cambiar a música del río al iniciar el juego
+        from utils.sound_manager import sound_manager
+        sound_manager.play_river_music()
         
         return run_game_window(difficulty, saved_data)
     

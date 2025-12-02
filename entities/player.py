@@ -109,6 +109,10 @@ class Player:
         damage = fish.mercury_damage
         fish_name = fish.fish_name
         
+        # Reproducir sonido de pescar
+        from utils.sound_manager import sound_manager
+        sound_manager.play_fishing()
+        
         if damage > 0:
             self.health = max(0, self.health - damage)
             self.fish_collected += 1
@@ -134,7 +138,7 @@ class Player:
                 self.collision_message_timer = 180
                 self.has_collision = True
                 self.show_special_sprite = True
-                # Reproducir sonido de colisión si está cargado
+                # Reproducir el sonido existente de colisión
                 try:
                     if self.collision_sound:
                         self.collision_sound.play()
@@ -267,10 +271,12 @@ class Player:
         self._update_messages()
         self._handle_obstacle_collision(tile_map)
         
-        if keys[pygame.K_SPACE]:
-            current_speed = self.boost_speed
-        
+        # Aplicar efectos de turbulencia primero
         new_x, new_y, current_speed = self._handle_turbulence_effects(tile_map, new_x, new_y, current_speed)
+        
+        # Luego aplicar turbo si se presiona espacio
+        if keys[pygame.K_SPACE]:
+            current_speed = self.boost_speed        
         new_x, new_y, has_moved = self._handle_movement(keys, current_speed, new_x, new_y)
         
         if self.is_fishing and has_moved:

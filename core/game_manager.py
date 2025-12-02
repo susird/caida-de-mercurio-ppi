@@ -178,18 +178,31 @@ class GameManager:
     def handle_events(self):
         events = pygame.event.get()
         
-        for event in events:
-            if event.type == pygame.QUIT:
-                return "quit"
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    return "menu"
-            elif event.type == pygame.MOUSEBUTTONDOWN and not (self.game_over or self.victory):
-                action = self.game_screen.handle_click(event.pos)
-                if action == "volver":
-                    return "menu"
-                elif action == "salir":
+        # Si está en game over o victoria, solo manejar esos eventos
+        if self.game_over:
+            action = self.game_over_screen.handle_events(events)
+            if action:
+                return action
+        elif self.victory:
+            for event in events:
+                if event.type == pygame.QUIT:
                     return "quit"
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    return "menu"
+        else:
+            # Eventos normales del juego
+            for event in events:
+                if event.type == pygame.QUIT:
+                    return "quit"
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        return "menu"
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    action = self.game_screen.handle_click(event.pos)
+                    if action == "volver":
+                        return "menu"
+                    elif action == "salir":
+                        return "quit"
         
         return None
     
@@ -253,11 +266,14 @@ class GameManager:
         if self.data_saved:
             return
         
-        elapsed_time = (pygame.time.get_ticks() - self.player.start_time) / 1000
-        
-        self.game_data.save_score(self.difficulty, self.player.fish_collected, elapsed_time, self.victory)
-        self.game_data.update_progress(self.difficulty, elapsed_time, self.victory)
-        self.game_data.update_stats(self.player.fish_collected, self.obstacles_hit, elapsed_time, self.victory)
+        try:
+            elapsed_time = (pygame.time.get_ticks() - self.player.start_time) / 1000
+            
+            self.game_data.save_score(self.difficulty, self.player.fish_collected, elapsed_time, self.victory)
+            self.game_data.update_progress(self.difficulty, elapsed_time, self.victory)
+            self.game_data.update_stats(self.player.fish_collected, self.obstacles_hit, elapsed_time, self.victory)
+        except Exception as e:
+            print(f"Error guardando datos: {e}")
         
         self.data_saved = True
     
@@ -278,12 +294,42 @@ class GameManager:
         
         return encontrar_posicion_inicial(self.tile_map)
     
+    def _generate_additional_fish(self, count):
+        """Genera peces adicionales cuando hay muy pocos"""
+        for _ in range(count * 3):  # Más intentos
+            x = random.randint(100, MAP_ANCHO - 100)
+            y = random.randint(100, MAP_ALTO - 100)
+            
+            tile_type = self.tile_map.get_tile_at_pixel(x, y)
+            if self.tile_map.is_water_tile(tile_type):
+                fish_type = self._determine_fish_type(tile_type)
+                self.fish_list.append(Fish(x, y, fish_type))
+                
+                if len(self.fish_list) >= count + 50:
+                    break
+    
     def _restore_fished_state(self):
-        if "fished_positions" in self.saved_data:
-            fished_positions = set(map(tuple, self.saved_data["fished_positions"]))
-            self.fish_list = [fish for fish in self.fish_list 
-                            if (int(fish.x), int(fish.y)) not in fished_positions]
+        if "fished_positions" in self.saved_data and self.saved_data["fished_positions"]:
+            fished_positions = set()
+            for pos in self.saved_data["fished_positions"]:
+                if isinstance(pos, (list, tuple)) and len(pos) >= 2:
+                    fished_positions.add((int(pos[0]), int(pos[1])))
+            
+            # Remover peces que ya fueron pescados
+            remaining_fish = []
+            for fish in self.fish_list:
+                fish_pos = (int(fish.x), int(fish.y))
+                if fish_pos not in fished_positions:
+                    remaining_fish.append(fish)
+            
+            self.fish_list = remaining_fish
+            
+            # Si quedan muy pocos peces, generar más
+            if len(self.fish_list) < 50:
+                self._generate_additional_fish(150 - len(self.fish_list))
+            
             self.tile_map.peces_activos = self.fish_list
+            print(f"Restaurado: {len(self.fish_list)} peces restantes de {self.original_fish_count} originales")
 
 def run_game_window(difficulty="novato", saved_data=None):
     game_manager = GameManager(difficulty, saved_data)
