@@ -1,8 +1,8 @@
 {
-  "total_fish_caught": 0,
+  "total_fish_caught": 24,
   "total_obstacles_hit": 0,
-  "total_time_played": 0,
+  "total_time_played": 240.063,
   "games_won": 0,
-  "games_lost": 0,
-  "best_fish_streak": 0
+  "games_lost": 2,
+  "best_fish_streak": 13
 }

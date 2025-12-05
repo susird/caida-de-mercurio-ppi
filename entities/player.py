@@ -266,14 +266,28 @@ class Player:
             if not self.heartbeat_sound:
                 return
 
-            if self.health <= 20 and not self.heartbeat_playing:
+            if self.health <= 20 and self.health > 0 and not self.heartbeat_playing:
                 self.heartbeat_sound.play(-1)  # loop infinito hasta que se detenga
                 self.heartbeat_playing = True
-            elif self.health > 20 and self.heartbeat_playing:
+            elif (self.health > 20 or self.health <= 0) and self.heartbeat_playing:
                 self.heartbeat_sound.stop()
                 self.heartbeat_playing = False
         except Exception:
             # No detener la ejecución del juego por fallos en audio
+            pass
+    
+    def stop_all_sounds(self):
+        """Detiene todos los sonidos del jugador"""
+        try:
+            if self.heartbeat_sound and self.heartbeat_playing:
+                self.heartbeat_sound.stop()
+                self.heartbeat_playing = False
+            
+            if self.toxic_water_playing:
+                from utils.sound_manager import sound_manager
+                sound_manager.stop_toxic_water()
+                self.toxic_water_playing = False
+        except Exception:
             pass
 
     def update(self, keys, tile_map):

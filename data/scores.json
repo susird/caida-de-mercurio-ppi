@@ -1,4 +1,23 @@
 {
-  "high_scores": [],
-  "last_updated": "2025-12-05T06:56:56.188737"
+  "high_scores": [
+    {
+      "player_name": "Jugador",
+      "difficulty": "pro",
+      "fish_caught": 13,
+      "time_taken": 60.058,
+      "won": false,
+      "date": "2025-12-05T07:39:08.539430",
+      "score": 2600
+    },
+    {
+      "player_name": "Jugador",
+      "difficulty": "novato",
+      "fish_caught": 11,
+      "time_taken": 180.005,
+      "won": false,
+      "date": "2025-12-05T07:36:18.085378",
+      "score": 1100
+    }
+  ],
+  "last_updated": "2025-12-05T07:39:08.539443"
 }

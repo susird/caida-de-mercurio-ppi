@@ -138,13 +138,16 @@ class GameManager:
         if self.player.health <= 0 and not self.game_over:
             self.game_over = True
             self.game_over_reason = "death"
+            self.player.stop_all_sounds()
         elif self.player.fish_collected >= self.difficulty_config["fish_goal"] and not self.victory:
             self.victory = True
+            self.player.stop_all_sounds()
         
         elapsed_time = (pygame.time.get_ticks() - self.player.start_time) / 1000
         if elapsed_time >= self.difficulty_config["time_limit"] and not self.game_over and not self.victory:
             self.game_over = True
             self.game_over_reason = "timeout"
+            self.player.stop_all_sounds()
     
     def update_entities(self):
         keys = pygame.key.get_pressed()
