@@ -1,11 +1,11 @@
 {
   "novato": {
     "difficulty": "novato",
-    "player_x": 4084,
-    "player_y": 15464,
-    "health": 56.10000000000022,
-    "fish_collected": 6,
-    "elapsed_time": 94.012,
+    "player_x": 4058,
+    "player_y": 13577,
+    "health": 20.650000000000478,
+    "fish_collected": 8,
+    "elapsed_time": 157.538,
     "has_save": true,
     "fished_positions": [
       [

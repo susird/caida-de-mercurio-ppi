@@ -34,6 +34,9 @@ class Player:
         # Cargar sonido de latido (salud baja) si está disponible
         self.heartbeat_sound = None
         self.heartbeat_playing = False
+        
+        # Control de sonido de agua tóxica
+        self.toxic_water_playing = False
         try:
             if pygame.mixer.get_init():
                 hb_file = SOUNDS_DIR / "HeartBeat.mp3"
@@ -155,6 +158,11 @@ class Player:
             if not self.in_turbulence:
                 self.in_turbulence = True
                 self.turbulence_message = "Está pasando por un cúmulo de agua contaminada por mercurio y estás perdiendo vida"
+                # Reproducir sonido de agua tóxica al entrar en turbulencia
+                if not self.toxic_water_playing:
+                    from utils.sound_manager import sound_manager
+                    sound_manager.play_toxic_water()
+                    self.toxic_water_playing = True
             
             self.turbulence_message_timer = 60
             self.health -= 0.05
@@ -164,6 +172,11 @@ class Player:
             if self.in_turbulence:
                 self.in_turbulence = False
                 self.turbulence_message_timer = 0
+                # Detener sonido de agua tóxica al salir de turbulencia
+                if self.toxic_water_playing:
+                    from utils.sound_manager import sound_manager
+                    sound_manager.stop_toxic_water()
+                    self.toxic_water_playing = False
         
         return new_x, new_y, current_speed
 

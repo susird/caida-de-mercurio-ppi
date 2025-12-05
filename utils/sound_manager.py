@@ -16,29 +16,17 @@ class SoundManager:
         """Carga todos los sonidos del juego"""
         sound_files = {
             'game_over': 'game_over.wav',
-            'fishing': 'fishing.mp3'
+            'fishing': 'fishing.mp3',
+            'toxic_water': 'toxic_water.wav'
         }
         
         # Músicas de fondo
         self.music_files = {
-            'menu': 'menu_music.mp3',
+            'menu': 'BackgroudMusic.mp3',
             'river': 'river_ambient.mp3'
         }
         
-        # Cargar músicas como sonidos para reproducir en paralelo
-        menu_path = os.path.join(SOUNDS_DIR, 'menu_music.mp3')
-        if os.path.exists(menu_path):
-            try:
-                self.menu_music_sound = pygame.mixer.Sound(menu_path)
-            except:
-                self.menu_music_sound = None
-        
-        river_path = os.path.join(SOUNDS_DIR, 'river_ambient.mp3')
-        if os.path.exists(river_path):
-            try:
-                self.river_sound = pygame.mixer.Sound(river_path)
-            except:
-                self.river_sound = None
+        # No necesitamos cargar sonidos adicionales
         
         for sound_name, filename in sound_files.items():
             sound_path = os.path.join(SOUNDS_DIR, filename)
@@ -82,10 +70,6 @@ class SoundManager:
         """Para la música de fondo"""
         try:
             pygame.mixer.music.stop()
-            if self.menu_music_sound:
-                self.menu_music_sound.stop()
-            if self.river_sound:
-                self.river_sound.stop()
             self.current_music = None
         except:
             pass
@@ -95,33 +79,8 @@ class SoundManager:
         self.play_music('menu')
     
     def play_river_music(self):
-        """Reproduce sonido ambiente del río + música del menú muy bajita"""
-        self.stop_music()
-        
-        print(f"DEBUG: river_sound existe: {self.river_sound is not None}")
-        print(f"DEBUG: menu_music_sound existe: {self.menu_music_sound is not None}")
-        
-        # Reproducir ambiente del río en canal 0
-        if self.river_sound:
-            try:
-                channel0 = pygame.mixer.Channel(0)
-                self.river_sound.set_volume(0.7)
-                channel0.play(self.river_sound, loops=-1)
-                print("DEBUG: River sound iniciado")
-            except Exception as e:
-                print(f"DEBUG: Error river sound: {e}")
-        
-        # Reproducir música del menú muy bajita en canal 1
-        if self.menu_music_sound:
-            try:
-                channel1 = pygame.mixer.Channel(1)
-                self.menu_music_sound.set_volume(0.15)
-                channel1.play(self.menu_music_sound, loops=-1)
-                print("DEBUG: Menu music iniciado")
-            except Exception as e:
-                print(f"DEBUG: Error menu music: {e}")
-        
-        self.current_music = 'river'
+        """Reproduce música del menú durante el juego"""
+        self.play_music('menu')
     
     def play_fishing(self):
         """Reproduce sonido de pescar"""
@@ -130,6 +89,16 @@ class SoundManager:
     def play_collision(self):
         """Reproduce sonido de colisión"""
         self.play_sound('collision')
+    
+    def play_toxic_water(self):
+        """Reproduce sonido de agua tóxica en loop"""
+        if 'toxic_water' in self.sounds and self.sounds['toxic_water']:
+            self.sounds['toxic_water'].play(-1)  # Loop infinito
+    
+    def stop_toxic_water(self):
+        """Detiene el sonido de agua tóxica"""
+        if 'toxic_water' in self.sounds and self.sounds['toxic_water']:
+            self.sounds['toxic_water'].stop()
 
 # Instancia global del gestor de sonidos
 sound_manager = SoundManager()
